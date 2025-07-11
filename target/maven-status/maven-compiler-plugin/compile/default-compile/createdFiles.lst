@@ -1,3 +1,5 @@
+com\sleekai\ChatBotUI.class
+com\sleekai\ChatBotFX.class
 com\sleekai\ChatBotApp.class
 com\sleekai\core\Memory.class
 com\sleekai\core\OllamaClient.class

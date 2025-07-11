@@ -21,7 +21,9 @@ public class ChatBotApp {
                 break;
             }
 
-            String response = OllamaClient.askMistral(userInput);
+            // 🧠 No GUI frame needed here
+            String response = OllamaClient.askMistral(userInput, null);
+
             System.out.println("sleek.ai: " + response);
         }
 

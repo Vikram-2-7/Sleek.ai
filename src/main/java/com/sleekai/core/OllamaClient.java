@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.UUID;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,19 +33,45 @@ public class OllamaClient {
         }
     }
 
-    private static void startMistralIfNotRunning() {
+    private static void startMistralIfNotRunning(JFrame parent) {
         if (!isMistralRunning()) {
             try {
-                new ProcessBuilder("cmd", "/c", "start", "cmd", "/k", "ollama run mistral").start();
-                Thread.sleep(5000);
+                if (parent == null) {
+                    System.out.println("🤖 [Sleekai]: 🧠 Booting up Sleek.ai backend... hang tight...");
+                } else {
+                    JOptionPane optionPane = new JOptionPane("Loading Sleek.ai backend...",
+                            JOptionPane.INFORMATION_MESSAGE,
+                            JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+                    final javax.swing.JDialog dialog = optionPane.createDialog(parent, "Sleek.ai Startup");
+                    dialog.setModal(false);
+                    dialog.setVisible(true);
+                }
+
+                new ProcessBuilder("cmd", "/c", "start", "/min", "cmd", "/c", "ollama run mistral").start();
+
+                int tries = 0;
+                while (!isMistralRunning() && tries < 30) {
+                    Thread.sleep(1000);
+                    tries++;
+                }
+
+                if (!isMistralRunning()) {
+                    throw new IOException("Mistral didn’t start in time.");
+                }
+
             } catch (Exception e) {
-                System.out.println("sleek.ai: ⚠️ Couldn't auto-start Mistral.");
+                if (parent == null) {
+                    System.out.println("🤖 [Sleekai]: ❌ Mistral failed to start. Please check Ollama setup.");
+                } else {
+                    JOptionPane.showMessageDialog(parent,
+                            "⚠️ Sleek.ai couldn't auto-start Mistral. Please start Ollama manually.", "Startup Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
 
     private static String enrichPrompt(String userPrompt) {
-        // Add random spice to vary similar prompts
         String spice = switch ((int) (Math.random() * 4)) {
             case 0 -> "Yo Sleek, act like you’re in a rap battle.";
             case 1 -> "Respond with Gen-Z energy and a bold twist.";
@@ -51,7 +80,6 @@ public class OllamaClient {
             default -> "";
         };
 
-        // Also add a unique UUID to prevent identical prompt hashing
         String promptID = UUID.randomUUID().toString();
 
         return """
@@ -66,8 +94,12 @@ public class OllamaClient {
                 + spice + "\nPrompt ID: " + promptID + "\nUser: \"" + userPrompt + "\"";
     }
 
-    public static String askMistral(String prompt) {
-        startMistralIfNotRunning();
+    public static String askMistral(String prompt, JFrame parentFrame) {
+        startMistralIfNotRunning(parentFrame);
+
+        if (!isMistralRunning()) {
+            return "❌ Mistral didn't launch even after retry. Please run `ollama run mistral` manually.";
+        }
 
         String finalPrompt = enrichPrompt(prompt);
 
@@ -86,7 +118,7 @@ public class OllamaClient {
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
-                    return "sleek.ai: ❌ Connection lost. Try restarting Ollama or give me a sec to vibe back in.";
+                    return "❌ Sleek.ai couldn't talk to Mistral. Check Ollama.";
                 }
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
@@ -97,13 +129,12 @@ public class OllamaClient {
                     JsonNode node = mapper.readTree(line);
                     if (node.has("response")) {
                         String chunk = node.get("response").asText();
-                        System.out.print(chunk);
                         fullResponse.append(chunk);
                     }
                 }
             }
         } catch (IOException e) {
-            return "sleek.ai: ❌ Connection issue. Is Mistral running?";
+            return "❌ Sleek.ai couldn't get a response. Network or Ollama issue.";
         }
 
         return polishResponse(prompt, fullResponse.toString().trim());

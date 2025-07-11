@@ -8,72 +8,63 @@
   <groupId>com.sleekai</groupId>
   <artifactId>sleekai</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>sleekai</name>
+  <name>Sleek.ai ChatBot</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
+    <javafx.version>21.0.1</javafx.version>
   </properties>
 
   <dependencies>
-    <!-- Stanford CoreNLP -->
+    <!-- Core -->
     <dependency>
       <groupId>edu.stanford.nlp</groupId>
       <artifactId>stanford-corenlp</artifactId>
       <version>4.5.5</version>
     </dependency>
-
-    <!-- Apache Commons Lang -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.14.0</version>
     </dependency>
-
-    <!-- Gson -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.10.1</version>
     </dependency>
-
-    <!-- OkHttp -->
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
       <version>4.12.0</version>
     </dependency>
-
-    <!-- Jackson (optional) -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.15.2</version>
     </dependency>
-
-    <!-- SLF4J (Logger Binding to remove warnings) -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.7.36</version>
     </dependency>
 
-    <!-- JUnit 5 -->
+    <!-- JavaFX -->
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.11.0</version>
-      <scope>test</scope>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.0</version>
-      <scope>test</scope>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
     </dependency>
+
+    <!-- JUnit -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
+      <artifactId>junit-jupiter</artifactId>
       <version>5.11.0</version>
       <scope>test</scope>
     </dependency>
@@ -81,7 +72,33 @@
 
   <build>
     <plugins>
-      <!-- Executable JAR -->
+      <!-- Java Compiler -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>17</release>
+        </configuration>
+      </plugin>
+
+      <!-- JavaFX Plugin for dev testing -->
+      <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.8</version>
+        <configuration>
+          <mainClass>com.sleekai.ChatBotFX</mainClass>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Assembly Plugin for Fat Jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -89,7 +106,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.sleekai.ChatBotApp</mainClass>
+              <mainClass>com.sleekai.ChatBotFX</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
@@ -105,12 +122,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- Java Compiler -->
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
       </plugin>
     </plugins>
   </build>
